@@ -1,0 +1,358 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajey Aryan - Portfolio</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            scroll-behavior: smooth;
+        }
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: #2d3748;
+            transition: all 0.3s ease;
+        }
+        .nav-link.active {
+            color: #fbbf24;
+            border-bottom: 2px solid #fbbf24;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #2b6cb0, #9f7aea, #fbbf24);
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        }
+        .typing-effect::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        .project-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        .section-title {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 50%;
+            height: 3px;
+            background-color: #fbbf24;
+        }
+        .progress-bar {
+            height: 10px;
+            background-color: #4a5568;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background-color: #9f7aea;
+            transition: width 1s ease-in-out;
+        }
+        .tooltip {
+            position: relative;
+        }
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .guitar-animation {
+            display: inline-block;
+            animation: strum 2s infinite ease-in-out;
+        }
+        @keyframes strum {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(5deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white">Ajey Aryan</h1>
+            <ul class="flex space-x-6">
+                <li><a href="#home" class="nav-link text-white hover:text-yellow-400 transition">Home</a></li>
+                <li><a href="#about" class="nav-link text-white hover:text-yellow-400 transition">About</a></li>
+                <li><a href="#education" class="nav-link text-white hover:text-yellow-400 transition">Education</a></li>
+                <li><a href="#projects" class="nav-link text-white hover:text-yellow-400 transition">Projects</a></li>
+                <li><a href="#skills" class="nav-link text-white hover:text-yellow-400 transition">Skills</a></li>
+                <li><a href="#contact" class="nav-link text-white hover:text-yellow-400 transition">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section py-20 text-center">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl md:text-6xl font-bold text-white mb-4">
+                Hi, I'm <span class="text-yellow-300">Ajey Aryan</span>
+            </h2>
+            <p class="text-xl md:text-2xl text-white typing-effect" id="typing-text"></p>
+            <a href="https://wa.me/918292173974?text=Hello!%20I%20hope%20you%27re%20having%20a%20wonderful%20day.%20Looking%20forward%20to%20connecting%20with%20you!" class="mt-6 inline-block bg-yellow-600 text-white py-2 px-6 rounded-full hover:bg-yellow-700 transition">Get in Touch</a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center section-title">About Me</h2>
+            <p class="text-lg text-center max-w-2xl mx-auto">
+                I'm Ajey Aryan, a curious student passionate about exploring the digital world, improving myself, and learning about finance and fund management. I aspire to create innovative solutions that blend technology and financial literacy. When I'm not diving into new online trends, you can find me playing the <span class="guitar-animation">🎸</span> guitar, singing, or listening to music, which fuels my creativity and keeps me inspired.
+            </p>
+        </div>
+    </section>
+
+    <!-- Education Section -->
+    <section id="education" class="py-20 bg-gray-800">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center section-title">Education</h2>
+            <div class="max-w-2xl mx-auto">
+                <div class="bg-gray-700 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold">10th Grade</h3>
+                    <p class="text-lg">[School Name, Year - please provide details]</p>
+                    <p class="text-lg">Marks: 73%</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="py-20">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center section-title">Projects</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="project-card bg-gray-700 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold">Web Exploration App</h3>
+                    <p class="text-lg">[Description, e.g., A web app to discover trending online tools - please provide details]</p>
+                    <a href="#" class="text-yellow-400 hover:underline">View Project</a>
+                </div>
+                <div class="project-card bg-gray-700 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold">Budget Tracker</h3>
+                    <p class="text-lg">[Description, e.g., A JavaScript-based tool for managing personal finances - please provide details]</p>
+                    <a href="#" class="text-yellow-400 hover:underline">View Project</a>
+                </div>
+                <div class="project-card bg-gray-700 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold">Music Playlist Generator</h3>
+                    <p class="text-lg">[Description, e.g., A tool to curate music playlists based on mood - please provide details]</p>
+                    <a href="#" class="text-yellow-400 hover:underline">View Project</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="py-20 bg-gray-800">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center section-title">Skills</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                <div class="tooltip" data-tooltip="Building responsive websites">
+                    <p class="text-lg font-semibold">Web Development</p>
+                    <div class="progress-bar"><div class="progress" style="width: 75%;"></div></div>
+                </div>
+                <div class="tooltip" data-tooltip="Understanding budgeting and investments">
+                    <p class="text-lg font-semibold">Financial Literacy</p>
+                    <div class="progress-bar"><div class="progress" style="width: 60%;"></div></div>
+                </div>
+                <div class="tooltip" data-tooltip="Playing acoustic and electric guitar">
+                    <p class="text-lg font-semibold">Guitar Playing</p>
+                    <div class="progress-bar"><div class="progress" style="width: 70%;"></div></div>
+                </div>
+                <div class="tooltip" data-tooltip="Singing various genres">
+                    <p class="text-lg font-semibold">Singing</p>
+                    <div class="progress-bar"><div class="progress" style="width: 65%;"></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center section-title">Contact Me</h2>
+            <div class="max-w-lg mx-auto">
+                <form id="contactForm" class="mb-6">
+                    <div class="mb-4">
+                        <label for="name" class="block text-lg font-semibold">Name</label>
+                        <input type="text" id="name" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-yellow-400" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="email" class="block text-lg font-semibold">Email</label>
+                        <input type="email" id="email" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-yellow-400" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="message" class="block text-lg font-semibold">Message</label>
+                        <textarea id="message" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-yellow-400" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="bg-yellow-600 text-white py-2 px-6 rounded-full hover:bg-yellow-700 transition">Send Message</button>
+                </form>
+                <p class="text-lg text-center">Or connect with me on:</p>
+                <div class="flex justify-center space-x-4 mt-2">
+                    <a href="https://wa.me/918292173974?text=Hello!%20I%20hope%20you%27re%20having%20a%20wonderful%20day.%20Looking%20forward%20to%20connecting%20with%20you!" class="text-yellow-400 hover:text-yellow-300">WhatsApp</a>
+                    <a href="https://www.linkedin.com/in/ajey-aryan-13767233b" class="text-yellow-400 hover:text-yellow-300">LinkedIn</a>
+                </div>
+                <p id="formMessage" class="text-center mt-4 text-lg"></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-6 text-center">
+        <div class="container mx-auto">
+            <p class="text-lg">Connect with me:</p>
+            <div class="flex justify-center space-x-4 mt-2">
+                <a href="https://wa.me/918292173974?text=Hello!%20I%20hope%20you%27re%20having%20a%20wonderful%20day.%20Looking%20forward%20to%20connecting%20with%20you!" class="text-yellow-400 hover:text-yellow-300">WhatsApp</a>
+                <a href="https://www.linkedin.com/in/ajey-aryan-13767233b" class="text-yellow-400 hover:text-yellow-300">LinkedIn</a>
+                <a href="[Your GitHub - please provide]" class="text-yellow-400 hover:text-yellow-300">[GitHub]</a>
+                <a href="mailto:[Your Email - please provide]" class="text-yellow-400 hover:text-yellow-300">[Email]</a>
+            </div>
+            <p class="mt-4">© 2025 Ajey Aryan. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Typing Effect for Hero Section
+        const phrases = ["Explorer of the Internet", "Aspiring Finance Enthusiast", "Guitarist & Singer"];
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const typingText = document.getElementById("typing-text");
+
+        function type() {
+            const currentPhrase = phrases[phraseIndex];
+            typingText.textContent = currentPhrase.substring(0, charIndex);
+
+            if (!isDeleting && charIndex < currentPhrase.length) {
+                charIndex++;
+                setTimeout(type, 100);
+            } else if (isDeleting && charIndex > 0) {
+                charIndex--;
+                setTimeout(type, 50);
+            } else if (!isDeleting && charIndex === currentPhrase.length) {
+                isDeleting = true;
+                setTimeout(type, 1000);
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                setTimeout(type, 200);
+            }
+        }
+        type();
+
+        // Active Navigation Link Highlighting
+        const navLinks = document.querySelectorAll(".nav-link");
+        window.addEventListener("scroll", () => {
+            let current = "";
+            const sections = document.querySelectorAll("section");
+            sections.forEach((section) => {
+                const sectionTop = section.offsetTop;
+                if (window.scrollY >= sectionTop - 60) {
+                    current = section.getAttribute("id");
+                }
+            });
+            navLinks.forEach((link) => {
+                link.classList.remove("active");
+                if (link.getAttribute("href").substring(1) === current) {
+                    link.classList.add("active");
+                }
+            });
+        });
+
+        // Form Validation with Animation
+        const contactForm = document.getElementById("contactForm");
+        const formMessage = document.getElementById("formMessage");
+
+        contactForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const name = document.getElementById("name").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const message = document.getElementById("message").value.trim();
+
+            if (name && email && message) {
+                if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    formMessage.textContent = "Message sent successfully!";
+                    formMessage.classList.add("text-green-400", "animate-pulse");
+                    contactForm.reset();
+                } else {
+                    formMessage.textContent = "Please enter a valid email address.";
+                    formMessage.classList.add("text-red-400", "animate-pulse");
+                }
+            } else {
+                formMessage.textContent = "Please fill in all fields.";
+                formMessage.classList.add("text-red-400", "animate-pulse");
+            }
+            setTimeout(() => {
+                formMessage.textContent = "";
+                formMessage.classList.remove("text-red-400", "text-green-400", "animate-pulse");
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
